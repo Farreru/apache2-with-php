@@ -1,0 +1,41 @@
+server:
+  bind_ip: 127.0.0.1
+  http_port: 8080
+  https_port: 443
+  domain_suffix: test
+  server_name: localdev
+  log_dir: logs
+  ssl_dir: ssl
+  pid_file: tmp/httpd.pid
+  server_root: /opt/local
+  apache_prefix: /opt/local
+  modules_dir: /opt/local/lib/apache2/modules
+  conf_dir: /opt/local/etc/apache2
+  httpd_bin: /opt/local/sbin/httpd
+  mpm: builtin
+  log_level: info
+  server_admin: webmaster@localdev.test
+  run_user: farreru {{YOUR USERNAME}}
+  run_group: staff
+  mkcert_bin: /opt/local/bin/mkcert
+  use_mkcert: true
+php:
+  default: php74
+  versions:
+    php82:
+      ini: /opt/local/etc/php82/php.ini
+      cli: /opt/local/bin/php82
+      fpm_bin: /opt/local/sbin/php-fpm82
+      fpm_listen: 127.0.0.1:9082
+    php74:
+      ini: /opt/local/etc/php74/php.ini
+      cli: /opt/local/bin/php74
+      fpm_bin: /opt/local/sbin/php-fpm74
+      fpm_listen: 127.0.0.1:9074
+hosts:
+  phpapp:
+    folder: html/phpapp
+    php: php82
+  phplegacy:
+    folder: html/phplegacy
+    php: php74

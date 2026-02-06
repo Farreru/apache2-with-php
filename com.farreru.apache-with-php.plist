@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+ "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.farreru.apache-with-php</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/farreru/project/apache-with-php/scripts/start.sh</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- restart kalau mati/crash -->
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+
+  <!-- cegah restart loop terlalu cepat -->
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/farreru/project/apache-with-php</string>
+
+  <key>StandardOutPath</key>
+  <string>/var/log/farreru-apache-with-php.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/var/log/farreru-apache-with-php.err.log</string>
+</dict>
+</plist>
+

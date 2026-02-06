@@ -1,0 +1,13 @@
+html/*
+!html/.gitignore
+
+logs/*
+!logs/.gitignore
+
+ssl/*
+!ssl/.gitignore
+
+tmp/*
+!tmp/.gitignore
+
+config.yml
