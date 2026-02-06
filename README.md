@@ -9,6 +9,23 @@ It may still be useful for others who want a lightweight Laragon-like setup on M
 
 This workspace is a lightweight macOS development runner that stitches together MacPorts Apache 2 and multiple PHP versions into a single project directory. It mirrors the convenience of tools like Laragon but stays focused on PHP-based projects.
 
+## Requirements
+
+- macOS with `python3` on `PATH` (every helper in `scripts/` starts with `#!/usr/bin/env python3`).
+- MacPorts Apache 2.x (`apache2`) so `scripts/start.sh` can build `httpd.conf`; the formula should expose `mod_proxy`, `mod_proxy_fcgi`, `mod_ssl`, `mod_rewrite`, and `mod_headers` in `/opt/local/lib/apache2/modules`.
+- One or more MacPorts PHP versions (the repo currently wires `php74`/`php82`) plus their `phpXX-fpm` ports so the runner can spawn FastCGI backends. Each PHP build should bundle the common extensions your apps depend on (at minimum `curl`, `openssl`, `mbstring`, `json`, `tokenizer`, `xml`, `zip`, `bcmath`, and `opcache`, and the `apache2handler` SAPI for consistency with CLI tooling).
+- `mkcert` (optional but recommended when `use_mkcert: true`) so `scripts/ensure_ssl.py` can mint locally trusted TLS certs; it falls back to `openssl req` when `mkcert` is absent.
+- `pfctl` and administrator access when you want `pf` port forwarding of real port `443` to the runner’s high HTTPS port (`scripts/pf-enable.sh`/`pf-disable.sh`).
+
+## Host machine
+
+- macOS 13.7.8 (22H730)
+- MacBookPro12,1 (Early 2015)
+- Intel Core i5-5287U @ 2.90GHz
+- Intel Iris Graphics 6100
+- 16 GB RAM
+- 2560×1600 Retina display
+
 ## Layout
 
 - `config.yml`: central configuration for the server, PHP versions, and virtual hosts (see below).
