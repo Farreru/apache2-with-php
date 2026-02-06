@@ -1,21 +1,32 @@
 # Apache-with-PHP Runner
 
+## Purpose
+
+This repository is mainly a personal workspace to run Apache + multi-PHP development environments on macOS.
+It may still be useful for others who want a lightweight Laragon-like setup on Mac.
+
+---
+
 This workspace is a lightweight macOS development runner that stitches together MacPorts Apache 2 and multiple PHP versions into a single project directory. It mirrors the convenience of tools like Laragon but stays focused on PHP-based projects.
 
 ## Layout
+
 - `config.yml`: central configuration for the server, PHP versions, and virtual hosts (see below).
 - `html/`: document roots for PHP hosts (examples: `phpapp`, `phplegacy`).
 - `scripts/`: helpers for generating `httpd.conf`, ensuring SSL, and managing the server lifecycle.
 - `logs/`, `ssl/`, `tmp/`: generated runtime state.
 
 ## Configuration (`config.yml`)
+
 The YAML file lets you define:
+
 1. `server` settings (bind IP, ports, log paths, Apache directories, SSL location, and executable paths).
 2. `php` definitions which map a name (e.g. `php82`) to its CLI binary, `php.ini`, the `php-fpm` binary (`fpm_bin`), and the FastCGI address it listens on (`fpm_listen`). The runner uses these values to spawn PHP-FPM instances per version and proxy PHP requests via `mod_proxy_fcgi`.
    - `ini`, `cli`, `fpm_bin`, and `fpm_listen` are required for each version you want to expose (defaults can align with `/opt/local` if you install MacPorts’ phpXX and phpXX-fpm ports).
 3. `hosts`, keyed by hostname (e.g. `phpapp`), providing a folder under `html/` and which PHP version to use. Each host becomes `{name}.{domain_suffix}` for HTTP and HTTPS and forwards `.php` files to the configured PHP-FPM endpoint.
 
 ### Server fields
+
 - `server_root`: sets Apache's `ServerRoot` (defaults to `/opt/local` for MacPorts).
 - `apache_prefix`: base prefix for locating binaries; defaults to `/opt/local`.
 - `modules_dir`: where `LoadModule` points; defaults to `apache_prefix/lib/apache2/modules`.
@@ -26,26 +37,32 @@ The YAML file lets you define:
 - `mkcert_bin`/`use_mkcert`: when `use_mkcert` is true and the binary exists, `scripts/ensure_ssl.py` runs `mkcert -cert-file ... -key-file ... <host>` to produce the certificates before Apache starts; it falls back to the builtin OpenSSL generator if mkcert is unavailable.
 
 ### Example snippet
+
 ```yaml
 hosts:
   phpapp:
     folder: html/phpapp
     php: php82
 ```
+
 This creates `phpapp.test` and uses PHP 8.2 for `.php` files.
 
 ## Generation step
+
 Run `scripts/generate_httpd_conf.py` (it is invoked by `start.sh`/`restart.sh`) to convert `config.yml` into a full Apache `httpd.conf` tailored to your hosts.
 
 ## Hosts
+
 `scripts/update_hosts.py` runs from `start.sh`/`restart.sh` and records every host defined in `config.yml` (including `server.server_name`) plus every top-level folder under `html/`. It writes a dedicated block between `# apache-with-php managed hosts start`/`end` in `/etc/hosts`, so each `{host}.{domain_suffix}` resolves to `127.0.0.1`/`::1`.
 
 If the script cannot write `/etc/hosts` directly it will fall back to re-running via `sudo tee /etc/hosts` (you may be prompted for a password when the shell is interactive). When executed from a non-interactive context such as `auto-start-at-login.sh` started from launchd, it simply prints a reminder and skips the update—rerun `sudo python3 scripts/update_hosts.py` manually for those cases.
 
 ## SSL
+
 `scripts/ensure_ssl.sh` issues self-signed certificates into `ssl/{host}.crt`/`.key`. Certificates are regenerated only if the key is missing, and both HTTP and HTTPS VirtualHosts point at them.
 
 ## Scripts
+
 - `scripts/start.sh`: runs `scripts/update_hosts.py`, regenerates `httpd.conf`, ensures SSL, and launches whichever `httpd` binary `config.yml` points at (`scripts/get_httpd_bin.py` resolves it). Use this in a shell or tmux as your main development server.
 - `scripts/restart.sh`: re-reads config, refreshes `/etc/hosts`/SSL, and restarts the same `httpd` process via HUP/reload so `config.yml` updates take effect.
 - `scripts/tmux-start.sh`: launches (or attaches to) a tmux session named `apache` (customizable via the first argument) that runs `./start.sh`; if the session is new it is created detached and then immediately attached so you stay in tmux and can respond to the sudo prompt.
@@ -61,11 +78,13 @@ If the script cannot write `/etc/hosts` directly it will fall back to re-running
 - `scripts/start-service.sh`, `scripts/restart-service.sh`, `scripts/stop-service.sh`, `scripts/check-service.sh`: helpers that install, reload, stop, and report on a `launchd` daemon (`com.farreru.apache-with-php`) that runs `start.sh` automatically on macOS.
 
 ## Flow
+
 1. Update `config.yml` with hosts and PHP mappings.
 2. Run `scripts/start.sh` (or `auto-start-at-login`); it builds config + SSL and starts Apache.
 3. Change PHP/hosts as needed and run `scripts/restart.sh` to reload Apache without stopping the process manually.
 
 ## Notes
+
 - The runner assumes MacPorts Apache under `/opt/local` and PHP modules under `/opt/local/lib/apache2/modules`. Adjust `server.apache_prefix`, `server.modules_dir`, and `php.versions.*.module` if your installation landed elsewhere.
 - Because PHP is now served through PHP-FPM, you need MacPorts’ `phpXX-fpm` ports (e.g., `php74-fpm`, `php82-fpm`). Each version’s `fpm_bin`/`fpm_listen` should point at the daemon and socket that port installs.
 - Generated logs land in `logs/` for easy inspection and can be rotated manually.
